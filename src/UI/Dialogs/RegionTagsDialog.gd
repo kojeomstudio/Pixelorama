@@ -438,11 +438,12 @@ func _add_tag(rect: Rect2i, from_selection: bool) -> void:
 	# 새 태그는 기본적으로 현재 프레임에만 적용된다(모션별 태깅). 다이얼로그에서 범위 조정.
 	var current_frame := project.current_frame + 1
 	# 커스텀 변경. by kojiomstudio — 부위_레이어_프레임 컨벤션 자동 네이밍(예: region_0_0).
+	# 커스텀 변경. by kojiomstudio — 다이얼로그 추가 태그도 항상 현재 레이어에 귀속.
 	var new_tag := RegionTag.new(
 		RegionTag.compose_name("", project.current_layer, project.current_frame),
 		color,
 		rect,
-		-1,
+		project.current_layer,
 		current_frame,
 		current_frame
 	)

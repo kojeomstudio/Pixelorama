@@ -33,11 +33,35 @@ func _ready() -> void:
 
 
 func _on_project_switched() -> void:
-	if is_instance_valid(_connected_project):
-		_connected_project.region_tags_changed.disconnect(queue_redraw)
+	_disconnect_project()
 	_connected_project = Global.current_project
 	if is_instance_valid(_connected_project):
 		_connected_project.region_tags_changed.connect(queue_redraw)
+		# 커스텀 추가. by kojeomstudio — 레이어 표시 토글/목록 변경 시 재그리기.
+		_connected_project.layers_updated.connect(_on_layers_updated)
+		for layer in _connected_project.layers:
+			layer.visibility_changed.connect(queue_redraw)
+	queue_redraw()
+
+
+func _disconnect_project() -> void:
+	if not is_instance_valid(_connected_project):
+		return
+	if _connected_project.region_tags_changed.is_connected(queue_redraw):
+		_connected_project.region_tags_changed.disconnect(queue_redraw)
+	if _connected_project.layers_updated.is_connected(_on_layers_updated):
+		_connected_project.layers_updated.disconnect(_on_layers_updated)
+	for layer in _connected_project.layers:
+		if layer.visibility_changed.is_connected(queue_redraw):
+			layer.visibility_changed.disconnect(queue_redraw)
+
+
+func _on_layers_updated() -> void:
+	if not is_instance_valid(_connected_project):
+		return
+	for layer in _connected_project.layers:
+		if not layer.visibility_changed.is_connected(queue_redraw):
+			layer.visibility_changed.connect(queue_redraw)
 	queue_redraw()
 
 
@@ -53,6 +77,10 @@ func _draw() -> void:
 	var border_width := 1.0 / maxf(canvas_zoom.x, 0.001)
 	for tag in project.region_tags:
 		if not tag.visible or not tag.applies_to(project.current_frame, project.current_layer):
+			continue
+		# 커스텀 변경. by kojeomstudio — 태그가 귀속된 레이어를 끄면 태그도 함께 숨긴다.
+		var tag_layer := tag.layer if tag.layer >= 0 else project.current_layer
+		if tag_layer >= project.layers.size() or not project.layers[tag_layer].visible:
 			continue
 		var rect := Rect2(tag.rect)
 		if Global.mirror_view:  # 미러 뷰에서도 태그가 실제 픽셀 위에 놓이도록 보정.

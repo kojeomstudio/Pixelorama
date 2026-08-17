@@ -4236,5 +4236,5 @@ msgstr ""
 
 # 커스텀 변경. by kojeomstudio — 태그 목록 우클릭 메뉴 문자열
 #: src/Tools/UtilityTools/RegionTagTool.gd
-msgid "Delete tag"
+msgid "Delete selected tags"
 msgstr ""

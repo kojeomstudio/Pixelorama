@@ -44,12 +44,6 @@ popup/item_0/id = 0
 popup/item_1/text = "All frames"
 popup/item_1/id = 1
 
-[node name="LayerOnly" type="CheckBox" parent="." index="5"]
-unique_name_in_owner = true
-layout_mode = 2
-mouse_default_cursor_shape = 2
-text = "Current layer only"
-
 [node name="NameHintLabel" type="Label" parent="." index="6"]
 layout_mode = 2
 theme_type_variation = &"HeaderXSmall"

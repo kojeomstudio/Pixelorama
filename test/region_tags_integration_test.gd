@@ -53,11 +53,11 @@ func _test_tool() -> void:
 		_fail("tool: 드래그 후 태그 미생성 (size=%d)" % project.region_tags.size())
 		return
 	var tag := project.region_tags[0]
-	# 기본 옵션: 이름 자동(region_0_0), 현재 프레임(1), 전체 레이어(-1)
+	# 기본 옵션: 이름 자동(region_layer0_frame0), 현재 프레임(1), 현재 레이어 귀속(0)
 	var expected := Rect2i(3, 4, 8, 11)
 	if tag.name != "region_layer0_frame0":
 		_fail("tool: 자동 네이밍 오류 (name=%s)" % tag.name)
-	if tag.rect != expected or tag.layer != -1 or tag.from_frame != 1:
+	if tag.rect != expected or tag.layer != 0 or tag.from_frame != 1:
 		_fail(
 			"tool: 태그 필드 오류 (rect=%s layer=%d from=%d)" % [str(tag.rect), tag.layer, tag.from_frame]
 		)
@@ -178,7 +178,7 @@ func _test_list_delete() -> void:
 		RegionTag.new("body_layer0_frame0", Color.BLUE, Rect2i(10, 10, 6, 6), -1, 1, 1),
 	]
 	project.region_tags = project.region_tags
-	tool._delete_tag_at(0)
+	tool._delete_tags([0])
 	if project.region_tags.size() != 1 or project.region_tags[0].name != "body_layer0_frame0":
 		_fail("list_delete: 삭제 결과 오류 (size=%d)" % project.region_tags.size())
 	if not project.undo_redo.has_undo():
@@ -265,6 +265,8 @@ func _test_serialization() -> void:
 	var json := JSON.stringify(dict, "\t")
 	if not json.contains('\n\t"region_tags"'):
 		_fail("serialize: 탭 인덴트가 적용되지 않음")
+	# 메타데이터 추출 샘플 출력(레이어 귀속 확인용).
+	print("REGION_TAGS_METADATA_SAMPLE:\n", JSON.stringify(dict.region_tags, "\t"))
 
 
 ## 실제 .pxo 저장/로드 라운드트립 + data.json 인덴트/내용 확인.
