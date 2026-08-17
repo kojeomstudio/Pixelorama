@@ -17,7 +17,7 @@ text = "Name:"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "region_1"
+placeholder_text = "head"
 
 [node name="ColorOptions" type="HBoxContainer" parent="." index="3"]
 layout_mode = 2
@@ -51,7 +51,14 @@ layout_mode = 2
 mouse_default_cursor_shape = 2
 text = "Current layer only"
 
-[node name="HintLabel" type="Label" parent="." index="6"]
+[node name="NameHintLabel" type="Label" parent="." index="6"]
+layout_mode = 2
+theme_type_variation = &"HeaderXSmall"
+text = "The _layer_frame suffix is added automatically (head → head_0_0)"
+autowrap_mode = 2
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="." index="7"]
 layout_mode = 2
 theme_type_variation = &"HeaderXSmall"
 text = "Existing tags can be edited in Image > Region Tags..."

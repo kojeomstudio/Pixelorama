@@ -231,7 +231,11 @@ func _get_tag_label(tag: RegionTag) -> String:
 		else "%d-%d" % [tag.from_frame, tag.to_frame]
 	)
 	var tag_name := tag.name if not tag.name.is_empty() else "-"
-	var label := "%s  (F%s)" % [tag_name, frame_range]
+	# 커스텀 변경. by kojeomstudio — 레이어 스코프가 있으면 L{n} 도 함께 표기해 계층 파악 용이하게.
+	var scope := "F%s" % frame_range
+	if tag.layer >= 0:
+		scope = "L%d, %s" % [tag.layer, scope]
+	var label := "%s  (%s)" % [tag_name, scope]
 	if not tag.visible:
 		label += "  (" + tr("hidden") + ")"
 	return label
@@ -425,8 +429,9 @@ func _add_tag(rect: Rect2i, from_selection: bool) -> void:
 	)
 	# 새 태그는 기본적으로 현재 프레임에만 적용된다(모션별 태깅). 다이얼로그에서 범위 조정.
 	var current_frame := project.current_frame + 1
+	# 커스텀 변경. by kojiomstudio — 부위_레이어_프레임 컨벤션 자동 네이밍(예: region_0_0).
 	var new_tag := RegionTag.new(
-		"region_%d" % (project.region_tags.size() + 1),
+		RegionTag.compose_name("", project.current_layer, project.current_frame),
 		color,
 		rect,
 		-1,
@@ -434,8 +439,9 @@ func _add_tag(rect: Rect2i, from_selection: bool) -> void:
 		current_frame
 	)
 	project.region_tags.append(new_tag)
+	project.sort_region_tags()  # 커스텀 변경. by kojeomstudio — 계층 순 유지
 	project.region_tags = project.region_tags
-	_refresh_list(project.region_tags.size() - 1)
+	_refresh_list(project.region_tags.find(new_tag))
 	if not from_selection:
 		name_line_edit.grab_focus()
 		name_line_edit.select_all()

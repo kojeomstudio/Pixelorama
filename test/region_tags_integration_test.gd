@@ -20,6 +20,7 @@ func _ready() -> void:
 		await get_tree().process_frame
 	await _test_overlay()
 	await _test_tool()
+	await _test_naming_and_sorting()
 	await _test_dialog_flow()
 	await _test_serialization()
 	await _test_pxo_roundtrip()
@@ -49,8 +50,10 @@ func _test_tool() -> void:
 		_fail("tool: 드래그 후 태그 미생성 (size=%d)" % project.region_tags.size())
 		return
 	var tag := project.region_tags[0]
-	# 기본 옵션: 이름 자동(region_1), 현재 프레임(1), 전체 레이어(-1)
+	# 기본 옵션: 이름 자동(region_0_0), 현재 프레임(1), 전체 레이어(-1)
 	var expected := Rect2i(3, 4, 8, 11)
+	if tag.name != "region_0_0":
+		_fail("tool: 자동 네이밍 오류 (name=%s)" % tag.name)
 	if tag.rect != expected or tag.layer != -1 or tag.from_frame != 1:
 		_fail(
 			"tool: 태그 필드 오류 (rect=%s layer=%d from=%d)" % [str(tag.rect), tag.layer, tag.from_frame]
@@ -61,6 +64,40 @@ func _test_tool() -> void:
 		project.undo_redo.undo()
 		if project.region_tags.size() != 0:
 			_fail("tool: undo 후 태그 잔존 (size=%d)" % project.region_tags.size())
+
+
+## 네이밍 컨벤션(부위_레이어_프레임) + 계층 정렬(레이어→프레임→이름) + 다중 부위 컬렉션 검증.
+func _test_naming_and_sorting() -> void:
+	if RegionTag.compose_name("head", 0, 0) != "head_0_0":
+		_fail("naming: head_0_0 컨벤션 오류 (%s)" % RegionTag.compose_name("head", 0, 0))
+	if RegionTag.compose_name("head", 0, 1) != "head_0_1":
+		_fail("naming: head_0_1 컨벤션 오류")
+	if RegionTag.compose_name("", 2, 3) != "region_2_3":
+		_fail("naming: 빈 base 기본값 오류")
+	var project := Global.current_project
+	# 같은 레이어의 프레임별 태그(head_0_0/head_0_1) + 같은 프레임 다중 부위(body/ear) + 레이어 스코프(arm)
+	project.region_tags = [
+		RegionTag.new("head_0_1", Color.RED, Rect2i(1, 1, 4, 4), -1, 2, 2),
+		RegionTag.new("head_0_0", Color.RED, Rect2i(1, 2, 4, 4), -1, 1, 1),
+		RegionTag.new("ear_0_0", Color.GREEN, Rect2i(3, 3, 2, 2), -1, 1, 1),
+		RegionTag.new("body_0_0", Color.BLUE, Rect2i(2, 2, 4, 4), -1, 1, 1),
+		RegionTag.new("arm_0_0", Color.CYAN, Rect2i(4, 4, 2, 2), 1, 1, 1),
+	]
+	project.sort_region_tags()
+	var names := []
+	for tag in project.region_tags:
+		names.append(tag.name)
+	var expected_order := ["body_0_0", "ear_0_0", "head_0_0", "head_0_1", "arm_0_0"]
+	if names != expected_order:
+		_fail("sorting: 계층 정렬 오류 (%s)" % str(names))
+	# 직렬화 결과도 정렬 순서 유지 확인
+	var region_data: Array = project.serialize()["region_tags"]
+	var serialized_names := []
+	for entry in region_data:
+		serialized_names.append(entry["name"])
+	if serialized_names != expected_order:
+		_fail("sorting: 직렬화 정렬 오류 (%s)" % str(serialized_names))
+	project.region_tags = []
 
 
 func _fail(message: String) -> void:

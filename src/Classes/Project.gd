@@ -282,6 +282,8 @@ func serialize() -> Dictionary:
 	for tag in animation_tags:
 		tag_data.append(tag.serialize())
 	# 커스텀 변경. by kojeomstudio — 영역 태그를 data.json 메타데이터에 포함.
+	# 커스텀 변경. by kojiomstudio — 계층(레이어→프레임→이름) 순 정렬 후 저장.
+	sort_region_tags()
 	var region_tag_data := []
 	for region_tag in region_tags:
 		region_tag_data.append(region_tag.serialize())
@@ -537,6 +539,8 @@ func deserialize(dict: Dictionary, zip_reader: ZIPReader = null, file: FileAcces
 			new_region_tag.deserialize(region_tag)
 			region_tags.append(new_region_tag)
 		region_tags = region_tags
+	# 커스텀 변경. by kojeomstudio — 로드된 태그도 계층 순으로 정렬해 일관된 순서 유지.
+	sort_region_tags()
 	if dict.has("guides"):
 		for g in dict.guides:
 			var guide := Guide.new()
@@ -798,6 +802,20 @@ func find_same_tileset_tilemap_cels(cels: Array[BaseCel]) -> Array[BaseCel]:
 
 ## Re-order layers to take each cel's z-index into account. If all z-indexes are 0,
 ## then the order of drawing is the same as the order of the layers itself.
+# 커스텀 추가. by kojeomstudio — 영역 태그를 계층(레이어→프레임→이름) 순으로 정렬한다.
+# 저장·로드·추가 시점에 호출되어 메타데이터(data.json)와 다이얼로그 목록이
+# 컬렉션 형태로 정리된 순서를 유지하게 한다.
+func sort_region_tags() -> void:
+	region_tags.sort_custom(
+		func(a: RegionTag, b: RegionTag) -> bool:
+			if a.layer != b.layer:
+				return a.layer < b.layer
+			if a.from_frame != b.from_frame:
+				return a.from_frame < b.from_frame
+			return a.name < b.name
+	)
+
+
 func order_layers(frame_index := current_frame) -> void:
 	ordered_layers = []
 	for i in layers.size():

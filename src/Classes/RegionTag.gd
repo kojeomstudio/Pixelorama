@@ -78,6 +78,15 @@ func deserialize(dict: Dictionary) -> void:
 	visible = bool(dict.get("visible", true))
 
 
+## 커스텀 추가. by kojiomstudio — 부위_레이어_프레임 자동 네이밍 컨벤션(예: head_0_0).
+## base 가 비어있으면 "region" 을 사용한다. layer/frame 은 0-based.
+static func compose_name(base: String, layer: int, frame: int) -> String:
+	base = base.strip_edges()
+	if base.is_empty():
+		base = "region"
+	return "%s_%d_%d" % [base, layer, frame]
+
+
 func duplicate() -> RegionTag:
 	var new_tag := RegionTag.new(name, color, rect, layer, from_frame, to_frame)
 	new_tag.user_data = user_data

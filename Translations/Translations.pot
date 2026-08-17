@@ -4210,6 +4210,11 @@ msgstr ""
 msgid "Existing tags can be edited in Image > Region Tags..."
 msgstr ""
 
+# 커스텀 변경. by kojeomstudio — 자동 네이밍 컨벤션 힌트
+#: src/Tools/UtilityTools/RegionTagTool.tscn
+msgid "The _layer_frame suffix is added automatically (head → head_0_0)"
+msgstr ""
+
 #. Shown as extra hint in the tooltip of the Region Tag tool.
 #: src/Autoload/Tools.gd
 msgid "Drag to create a region tag on the canvas"

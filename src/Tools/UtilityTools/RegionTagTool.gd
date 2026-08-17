@@ -100,12 +100,17 @@ func _set_cursor_text(rect: Rect2i) -> void:
 ## 드래그로 만든 사각형을 태그로 커밋한다. 다이얼로그와 동일하게 하나의 undo 액션으로.
 func _commit_tag(rect: Rect2i) -> void:
 	var project := Global.current_project
-	var tag_name: String = $"%Name".text.strip_edges()
-	if tag_name.is_empty():
-		tag_name = "region_%d" % (project.region_tags.size() + 1)
+	var tag_base: String = $"%Name".text.strip_edges()
 	var frame_scope: int = $"%FrameScope".selected
 	var from_frame := project.current_frame + 1
 	var to_frame := from_frame
+	# 커스텀 변경. by kojiomstudio — 부위_레이어_프레임 자동 네이밍(예: head_0_0).
+	# "All frames" 스코프는 프레임 무관 태그이므로 base 그대로 둔다.
+	var tag_name := tag_base
+	if frame_scope != 1:
+		tag_name = RegionTag.compose_name(tag_base, project.current_layer, project.current_frame)
+	elif tag_name.is_empty():
+		tag_name = "region"
 	if frame_scope == 1:  # All frames
 		from_frame = 1
 		to_frame = maxi(project.frames.size(), 1)
@@ -117,6 +122,14 @@ func _commit_tag(rect: Rect2i) -> void:
 	for tag in project.region_tags:
 		new_tags.append(tag.duplicate())
 	new_tags.append(RegionTag.new(tag_name, color, rect, layer, from_frame, to_frame))
+	new_tags.sort_custom(  # 커스텀 변경. by kojeomstudio — 계층 순 유지
+		func(a: RegionTag, b: RegionTag) -> bool:
+			if a.layer != b.layer:
+				return a.layer < b.layer
+			if a.from_frame != b.from_frame:
+				return a.from_frame < b.from_frame
+			return a.name < b.name
+	)
 	var undo_tags: Array[RegionTag] = []
 	for tag in project.region_tags:
 		undo_tags.append(tag.duplicate())
