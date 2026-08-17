@@ -577,6 +577,9 @@ func assign_tool(tool_name: String, button: int, allow_refresh := false) -> void
 	update_tool_buttons()
 	update_tool_cursors()
 	Global.config_cache.set_value(slot.kname, "tool", tool_name)
+	# 커스텀 변경. by kojiomstudio — 종료 시가 아니라 전환 즉시 저장해 비정상 종료에도
+	# 마지막 도구가 복원되게 한다.
+	Global.config_cache.save(Global.CONFIG_PATH)
 
 
 func quick_assign_tool(tool_name: String, button: int, allow_refresh := false) -> void:
