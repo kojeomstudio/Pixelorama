@@ -4212,7 +4212,7 @@ msgstr ""
 
 # 커스텀 변경. by kojeomstudio — 자동 네이밍 컨벤션 힌트
 #: src/Tools/UtilityTools/RegionTagTool.tscn
-msgid "The _layer_frame suffix is added automatically (head → head_0_0)"
+msgid "The layer/frame suffix is added automatically (head → head_layer0_frame0)"
 msgstr ""
 
 #. Shown as extra hint in the tooltip of the Region Tag tool.
@@ -4227,4 +4227,9 @@ msgstr ""
 
 #: src/Autoload/Tools.gd src/Tools/UtilityTools/RegionTagEraser.tscn
 msgid "Click or drag over a tag to erase it"
+msgstr ""
+
+# 커스텀 변경. by kojeomstudio — 자동 색상/태그 목록 문자열
+#: src/Tools/UtilityTools/RegionTagTool.tscn
+msgid "Auto color (reused per name)"
 msgstr ""

@@ -14,9 +14,11 @@ extends Node2D
 const FILL_ALPHA := 0.15
 const BORDER_ALPHA := 0.9
 const LABEL_FONT_SIZE := 14
-const LABEL_OFFSET := Vector2(2, -4)
+const LABEL_OFFSET := Vector2(0, -2)
 
 var font: Font
+## 커스텀 추가. by kojeomstudio — 도구의 태그 목록에서 선택된 태그(테두리 강조용).
+var selected_tag: RegionTag
 
 var _connected_project: Project
 
@@ -62,30 +64,40 @@ func _draw() -> void:
 		draw_rect(rect, fill_color, true)
 		var border_color := tag.color
 		border_color.a = BORDER_ALPHA
+		if tag == selected_tag:  # 커스텀 변경. by kojiomstudio — 목록 선택 태그는 흰색 강조
+			border_color = Color.WHITE
 		draw_rect(rect, border_color, false, border_width)
 		_draw_label(rect, tag.name, tag.color, canvas_zoom, canvas_rotation)
 
 
-## 라벨은 화면 고정 크기로 그리되 위치는 영역 크기에 맞춰 배치한다.
+## 커스텀 변경. by kojiomstudio — 네임플레이트: 검은 배경 없이 영역 좌측 최상단 코너
+## 바로 위에 bold 로 표시한다. 가독성을 위해 얇은 어두운 윤곽만 깔고, 본문을 살짝
+## 겹쳐 그려 굵은 글씨 효과를 낸다.
 func _draw_label(
 	rect: Rect2, text: String, color: Color, canvas_zoom: Vector2, canvas_rotation: float
 ) -> void:
-	# 커스텀 변경. by kojiomstudio — 라벨 위치/가독성 개선:
-	# 화면상 영역이 라벨보다 크면 영역 내부 상단에, 작으면 영역 위쪽에 배치한다.
-	# 반투명 어두운 배경 박스를 깔아 어떤 배경 위에서도 읽히게 한다.
-	var label_size := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE)
-	var rect_screen_size := rect.size * canvas_zoom
-	var inside_rect := (
-		rect_screen_size.x > label_size.x + 8 and rect_screen_size.y > LABEL_FONT_SIZE + 6
-	)
-	var label_pos := rect.position + LABEL_OFFSET  # 기본: 영역 위쪽 바깥
-	if inside_rect or rect.position.y * canvas_zoom.y < LABEL_FONT_SIZE + 4:
-		label_pos = rect.position + Vector2(2, 2)  # 영역 내부 상단 좌측
+	var label_pos := rect.position + LABEL_OFFSET
 	var string_pos := (label_pos * canvas_zoom).rotated(-canvas_rotation)
 	draw_set_transform(Vector2.ZERO, canvas_rotation, Vector2.ONE / canvas_zoom)
-	var background_rect := Rect2(
-		string_pos - Vector2(3, 2), label_size + Vector2(6, 4)
-	)
-	draw_rect(background_rect, Color(0, 0, 0, 0.55), true)
+	for offset in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+		draw_string(
+			font,
+			string_pos + offset,
+			text,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1,
+			LABEL_FONT_SIZE,
+			Color(0, 0, 0, 0.8)
+		)
+	# 본문을 0.5px 오프셋으로 두 번 그려 bold 효과를 낸다.
 	draw_string(font, string_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE, color)
+	draw_string(
+		font,
+		string_pos + Vector2(0.5, 0),
+		text,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		LABEL_FONT_SIZE,
+		color
+	)
 	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)

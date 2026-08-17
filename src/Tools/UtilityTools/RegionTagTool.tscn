@@ -54,13 +54,33 @@ text = "Current layer only"
 [node name="NameHintLabel" type="Label" parent="." index="6"]
 layout_mode = 2
 theme_type_variation = &"HeaderXSmall"
-text = "The _layer_frame suffix is added automatically (head → head_0_0)"
+text = "The layer/frame suffix is added automatically (head → head_layer0_frame0)"
 autowrap_mode = 2
 horizontal_alignment = 1
 
-[node name="HintLabel" type="Label" parent="." index="7"]
+[node name="AutoColor" type="CheckBox" parent="." index="7"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+button_pressed = true
+text = "Auto color (reused per name)"
+
+[node name="HintLabel" type="Label" parent="." index="8"]
 layout_mode = 2
 theme_type_variation = &"HeaderXSmall"
 text = "Existing tags can be edited in Image > Region Tags..."
 autowrap_mode = 2
 horizontal_alignment = 1
+
+[node name="TagsLabel" type="Label" parent="." index="9"]
+layout_mode = 2
+theme_type_variation = &"HeaderSmall"
+text = "Tags:"
+horizontal_alignment = 1
+
+[node name="TagList" type="ItemList" parent="." index="10"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_default_cursor_shape = 2

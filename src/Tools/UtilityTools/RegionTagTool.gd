@@ -16,10 +16,68 @@ var _rect := Rect2i()
 var _square := false  ## Mouse Click + Shift
 var _expand_from_center := false  ## Mouse Click + Ctrl
 
+var _connected_project: Project
+
 
 func _ready() -> void:
 	super._ready()
 	$"%Color".color = Color.from_string(RegionTag.DEFAULT_COLORS[0], Color.WHITE)
+	# 커스텀 추가. by kojeomstudio — 도구 옵션의 태그 목록을 프로젝트 변경 시 갱신한다.
+	Global.project_switched.connect(_on_project_switched)
+	Global.cel_switched.connect(_refresh_tag_list)
+	$"TagList".item_selected.connect(_on_tag_list_selected)
+	_on_project_switched()
+
+
+func _on_project_switched() -> void:
+	if is_instance_valid(_connected_project):
+		if _connected_project.region_tags_changed.is_connected(_refresh_tag_list):
+			_connected_project.region_tags_changed.disconnect(_refresh_tag_list)
+	_connected_project = Global.current_project
+	if is_instance_valid(_connected_project):
+		_connected_project.region_tags_changed.connect(_refresh_tag_list)
+	_refresh_tag_list()
+
+
+## 커스텀 추가. by kojeomstudio — 정렬된 순서로 태그 목록을 채운다(선택 유지).
+func _refresh_tag_list() -> void:
+	var tag_list: ItemList = $"TagList"
+	var selected_base := -1
+	if not tag_list.get_selected_items().is_empty():
+		selected_base = tag_list.get_selected_items()[0]
+	tag_list.clear()
+	var project := Global.current_project
+	if not is_instance_valid(project):
+		return
+	for tag in project.region_tags:
+		var icon := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+		var icon_color := tag.color
+		icon_color.a = 1.0
+		icon.fill(icon_color)
+		tag_list.add_item(_get_tag_label(tag), ImageTexture.create_from_image(icon))
+	if selected_base >= 0 and selected_base < tag_list.item_count:
+		tag_list.select(selected_base)
+
+
+func _get_tag_label(tag: RegionTag) -> String:
+	var frame_range := (
+		str(tag.from_frame)
+		if tag.from_frame == tag.to_frame
+		else "%d-%d" % [tag.from_frame, tag.to_frame]
+	)
+	var scope := "F%s" % frame_range
+	if tag.layer >= 0:
+		scope = "L%d, %s" % [tag.layer, scope]
+	return "%s (%s)" % [tag.name, scope]
+
+
+## 목록에서 선택한 태그를 오버레이에서 흰색 테두리로 강조한다.
+func _on_tag_list_selected(index: int) -> void:
+	var project := Global.current_project
+	var overlay := Global.canvas.region_tags_overlay
+	if not is_instance_valid(overlay) or index >= project.region_tags.size():
+		return
+	overlay.selected_tag = project.region_tags[index]
 
 
 func _input(event: InputEvent) -> void:
@@ -85,7 +143,10 @@ func draw_preview() -> void:
 	canvas.draw_rect(_rect, fill_color, true)
 	var border_color := color
 	border_color.a = RegionTagsOverlay.BORDER_ALPHA
-	canvas.draw_rect(_rect, border_color, false)
+	# 커스텀 변경. by kojiomstudio — 테두리를 화면 기준 1px 로 얇게 유지(줌 보정).
+	var canvas_zoom := get_viewport().canvas_transform.get_scale()
+	var border_width := 1.0 / maxf(canvas_zoom.x, 0.001)
+	canvas.draw_rect(_rect, border_color, false, border_width)
 	canvas.draw_set_transform(canvas.position, canvas.rotation, canvas.scale)
 
 
@@ -123,7 +184,11 @@ func _commit_tag(rect: Rect2i) -> void:
 	var layer := -1
 	if $"%LayerOnly".button_pressed:
 		layer = project.current_layer
+	# 커스텀 변경. by kojeomstudio — 자동 색상: 같은 부위 이름의 기존 색을 재사용(1:1 매핑)하고
+	# 새로운 부위면 아직 안 쓰인 고시인성 색을 고른다. 체크 해제 시 색 선택기를 따른다.
 	var color: Color = $"%Color".color
+	if $"%AutoColor".button_pressed:
+		color = RegionTag.pick_color(tag_base, project.region_tags)
 	var new_tags: Array[RegionTag] = []
 	for tag in project.region_tags:
 		new_tags.append(tag.duplicate())

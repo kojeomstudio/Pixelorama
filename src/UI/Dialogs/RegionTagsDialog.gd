@@ -432,10 +432,9 @@ func _on_add_from_selection_pressed() -> void:
 
 func _add_tag(rect: Rect2i, from_selection: bool) -> void:
 	var project := Global.current_project
-	var color := Color.from_string(
-		RegionTag.DEFAULT_COLORS[project.region_tags.size() % RegionTag.DEFAULT_COLORS.size()],
-		Color.WHITE
-	)
+	# 커스텀 변경. by kojiomstudio — 색상 1:1 매핑: 같은 부위 이름의 기존 색 재사용,
+	# 새 부위면 미사용 고시인성 색 자동 선택.
+	var color := RegionTag.pick_color("", project.region_tags)
 	# 새 태그는 기본적으로 현재 프레임에만 적용된다(모션별 태깅). 다이얼로그에서 범위 조정.
 	var current_frame := project.current_frame + 1
 	# 커스텀 변경. by kojiomstudio — 부위_레이어_프레임 컨벤션 자동 네이밍(예: region_0_0).

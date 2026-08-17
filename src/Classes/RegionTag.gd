@@ -78,13 +78,44 @@ func deserialize(dict: Dictionary) -> void:
 	visible = bool(dict.get("visible", true))
 
 
-## 커스텀 추가. by kojiomstudio — 부위_레이어_프레임 자동 네이밍 컨벤션(예: head_0_0).
+## 커스텀 변경. by kojiomstudio — 부위_레이어_프레임 자동 네이밍 컨벤션(예: head_layer0_frame0).
 ## base 가 비어있으면 "region" 을 사용한다. layer/frame 은 0-based.
 static func compose_name(base: String, layer: int, frame: int) -> String:
 	base = base.strip_edges()
 	if base.is_empty():
 		base = "region"
-	return "%s_%d_%d" % [base, layer, frame]
+	return "%s_layer%d_frame%d" % [base, layer, frame]
+
+
+## 커스텀 추가. by kojiomstudio — 자동 네이밍 접미사를 제거해 부위 base 이름을 얻는다.
+static func get_base_name(tag_name: String) -> String:
+	var regex := RegEx.create_from_string("_layer\\d+_frame\\d+$")
+	return regex.sub(tag_name.strip_edges(), "", true)
+
+
+## 커스텀 추가. by kojiomstudio — 색상 1:1 매핑 재사용: 같은 부위(base)의 기존 태그 색을
+## 그대로 물려받고, 새로운 부위라면 프로젝트에서 아직 안 쓰인 고시인성 색을 자동 고른다.
+static func pick_color(base: String, tags: Array[RegionTag]) -> Color:
+	base = base.strip_edges()
+	if base.is_empty():
+		base = "region"
+	var base_color := Color.WHITE
+	var found := false
+	for tag in tags:
+		if get_base_name(tag.name) == base:
+			if not found or tag.color == base_color:
+				base_color = tag.color
+				found = true
+	if found:
+		return base_color
+	var used := {}
+	for tag in tags:
+		used[tag.color.to_html(true)] = true
+	for color_code in DEFAULT_COLORS:
+		var color := Color.from_string(color_code, Color.WHITE)
+		if not used.has(color.to_html(true)):
+			return color
+	return Color.from_string(DEFAULT_COLORS[tags.size() % DEFAULT_COLORS.size()], Color.WHITE)
 
 
 func duplicate() -> RegionTag:
