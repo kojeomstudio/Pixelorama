@@ -17,6 +17,8 @@ var _square := false  ## Mouse Click + Shift
 var _expand_from_center := false  ## Mouse Click + Ctrl
 # 커스텀 추가. by kojiomstudio — 태그 목록 우클릭 삭제 메뉴.
 var _context_menu: PopupMenu
+# 커스텀 추가. by kojeomstudio — Delete 키 삭제 확인용 다이얼로그.
+var _confirm_dialog: ConfirmationDialog
 # 커스텀 추가. by kojeomstudio — 목록 행 → 태그 인덱스 매핑(그룹 헤더 때문에 필요).
 var _tag_rows: Array[int] = []
 
@@ -36,6 +38,13 @@ func _ready() -> void:
 	tag_list.item_clicked.connect(_on_tag_list_item_clicked)
 	# 커스텀 추가. by kojeomstudio — Delete 키로도 선택 태그를 삭제할 수 있게 한다.
 	tag_list.gui_input.connect(_on_tag_list_gui_input)
+	# 커스텀 추가. by kojeomstudio — Delete 키 삭제 시 확인 팝업을 한 번 띄운다.
+	_confirm_dialog = ConfirmationDialog.new()
+	_confirm_dialog.dialog_text = tr("Delete the selected region tags?")
+	_confirm_dialog.ok_button_text = tr("Delete")
+	_confirm_dialog.add_cancel_button(tr("Cancel"))
+	_confirm_dialog.confirmed.connect(_on_context_menu_id_pressed.bind(0))
+	add_child(_confirm_dialog)
 	_context_menu = PopupMenu.new()
 	_context_menu.add_item(tr("Delete selected tags"), 0)
 	_context_menu.id_pressed.connect(_on_context_menu_id_pressed)
@@ -44,7 +53,7 @@ func _ready() -> void:
 
 
 ## 목록 항목 우클릭 시 삭제 메뉴를 띄운다. Shift/Ctrl 클릭으로 여러 항목 선택 가능.
-## 목록에 포커스된 상태에서 Delete 키를 누르면 선택 태그들을 삭제한다.
+## 목록에 포커스된 상태에서 Delete 키를 누르면 확인 팝업 후 선택 태그들을 삭제한다.
 func _on_tag_list_gui_input(event: InputEvent) -> void:
 	if (
 		event is InputEventKey
@@ -52,8 +61,10 @@ func _on_tag_list_gui_input(event: InputEvent) -> void:
 		and not event.echo
 		and event.keycode == KEY_DELETE
 	):
-		_on_context_menu_id_pressed(0)
-		($"TagList" as ItemList).accept_event()
+		var tag_list := $"TagList" as ItemList
+		if not tag_list.get_selected_items().is_empty():
+			_confirm_dialog.popup_centered()
+			tag_list.accept_event()
 
 
 func _on_tag_list_item_clicked(index: int, _position: Vector2, button: int) -> void:

@@ -4238,3 +4238,8 @@ msgstr ""
 #: src/Tools/UtilityTools/RegionTagTool.gd
 msgid "Delete selected tags"
 msgstr ""
+
+# 커스텀 변경. by kojiomstudio — Delete 키 삭제 확인 다이얼로그 문자열
+#: src/Tools/UtilityTools/RegionTagTool.gd
+msgid "Delete the selected region tags?"
+msgstr ""
