@@ -485,7 +485,8 @@ func save_pxo_file(
 	if not serialized_data:
 		Global.popup_error(tr("File failed to save. Converting project data to dictionary failed."))
 		return false
-	var to_save := JSON.stringify(serialized_data)
+	# 커스텀 변경. by kojeomstudio — 탭 들여쓰기로 저장해 사용자가 data.json을 편하게 읽도록 함.
+	var to_save := JSON.stringify(serialized_data, "\t")
 	if not to_save:
 		Global.popup_error(tr("File failed to save. Converting dictionary to JSON failed."))
 		return false

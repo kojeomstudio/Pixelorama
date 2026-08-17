@@ -12,6 +12,7 @@ signal fps_changed
 signal layers_updated
 signal frames_updated
 signal tags_changed
+signal region_tags_changed  # 커스텀 변경. by kojeomstudio — region_tags 수정 시 오버레이 갱신용
 
 const INDEXED_MODE := -1
 
@@ -68,6 +69,11 @@ var animation_tags: Array[AnimationTag] = []:
 	set(value):
 		animation_tags = value
 		tags_changed.emit()
+# 커스텀 변경. by kojeomstudio — 캔버스 영역 태그(신체 부위 등) 목록. .pxo 메타데이터에 저장됨.
+var region_tags: Array[RegionTag] = []:
+	set(value):
+		region_tags = value
+		region_tags_changed.emit()
 var guides: Array[Guide] = []
 var brushes: Array[Image] = []
 var palettes: Dictionary[String, Palette] = {}
@@ -275,6 +281,10 @@ func serialize() -> Dictionary:
 	var tag_data := []
 	for tag in animation_tags:
 		tag_data.append(tag.serialize())
+	# 커스텀 변경. by kojeomstudio — 영역 태그를 data.json 메타데이터에 포함.
+	var region_tag_data := []
+	for region_tag in region_tags:
+		region_tag_data.append(region_tag.serialize())
 	var guide_data := []
 	for guide in guides:
 		if guide is SymmetryGuide:
@@ -324,6 +334,7 @@ func serialize() -> Dictionary:
 		"tile_mode_y_basis_y": tiles.y_basis.y,
 		"layers": layer_data,
 		"tags": tag_data,
+		"region_tags": region_tag_data,  # 커스텀 변경. by kojeomstudio — 영역 태그 메타데이터
 		"guides": guide_data,
 		"symmetry_points": [x_symmetry_point, y_symmetry_point],
 		"frames": frame_data,
@@ -517,6 +528,13 @@ func deserialize(dict: Dictionary, zip_reader: ZIPReader = null, file: FileAcces
 			new_tag.user_data = tag.get("user_data", "")
 			animation_tags.append(new_tag)
 		animation_tags = animation_tags
+	# 커스텀 변경. by kojeomstudio — 저장된 영역 태그 복원 (구버전 .pxo에는 키가 없어 빈 목록 유지).
+	if dict.has("region_tags"):
+		for region_tag in dict.region_tags:
+			var new_region_tag := RegionTag.new()
+			new_region_tag.deserialize(region_tag)
+			region_tags.append(new_region_tag)
+		region_tags = region_tags
 	if dict.has("guides"):
 		for g in dict.guides:
 			var guide := Guide.new()

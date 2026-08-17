@@ -4133,3 +4133,66 @@ msgstr ""
 #: src/UI/TilesPanel.tscn
 msgid "Probability:"
 msgstr ""
+
+# 커스텀 변경. by kojiomstudio — 영역 태그 기능 문자열
+#: src/UI/Dialogs/RegionTagsDialog.gd src/UI/Dialogs/RegionTagsDialog.tscn
+msgid "Region Tags"
+msgstr ""
+
+#: src/UI/TopMenuContainer/TopMenuContainer.gd
+msgid "Show Region Tags"
+msgstr ""
+
+#: src/UI/TopMenuContainer/TopMenuContainer.gd
+msgid "Region Tags..."
+msgstr ""
+
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "Layer:"
+msgstr ""
+
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "All Layers"
+msgstr ""
+
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "From Frame:"
+msgstr ""
+
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "To Frame:"
+msgstr ""
+
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "X:"
+msgstr ""
+
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "Y:"
+msgstr ""
+
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "User Data:"
+msgstr ""
+
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "Add From Selection"
+msgstr ""
+
+#. Creates a region tag covering the current selection, only visible on the current frame.
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "Creates a region tag from the current selection, scoped to the current frame."
+msgstr ""
+
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "There is no selection to create a region tag from."
+msgstr ""
+
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "The selection is outside of the canvas boundaries."
+msgstr ""
+
+#. A region tag that is stored in the metadata but not drawn on the canvas.
+#: src/UI/Dialogs/RegionTagsDialog.gd
+msgid "hidden"
+msgstr ""

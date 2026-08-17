@@ -75,6 +75,7 @@ enum ViewMenu {
 	SHOW_REFERENCE_IMAGES,
 	DISPLAY_LAYER_EFFECTS,
 	SNAP_TO,
+	SHOW_REGION_TAGS,  # 커스텀 변경. by kojeomstudio — 영역 태그 오버레이 표시 토글
 }
 ## Enumeration of items present in the Window Menu.
 enum WindowMenu { WINDOW_OPACITY, PANELS, LAYOUTS, MOVABLE_PANELS, ZEN_MODE, FULLSCREEN_MODE }
@@ -86,6 +87,7 @@ enum ProjectMenu {
 	SCALE_IMAGE,
 	CROP_TO_SELECTION,
 	CROP_TO_CONTENT,
+	REGION_TAGS,  # 커스텀 변경. by kojeomstudio — 영역 태그 관리 다이얼로그 열기
 }
 ## Enumeration of items present in the Select Menu.
 enum SelectMenu { SELECT_ALL, CLEAR, RESELECT, INVERT, SELECT_CEL_AREA, WRAP_STROKES, MODIFY }
@@ -653,6 +655,12 @@ var show_rulers := true:
 var show_guides := true
 ## If [code]true[/code], the mouse guides are visible.
 var show_mouse_guides := false
+## 커스텀 변경. by kojeomstudio — If [code]true[/code], the region tags are visible on the canvas.
+var show_region_tags := true:
+	set(value):
+		show_region_tags = value
+		if is_instance_valid(canvas.region_tags_overlay):
+			canvas.region_tags_overlay.queue_redraw()
 ## If [code]true[/code], the indices of color are shown.
 var show_pixel_indices := false:
 	set(value):

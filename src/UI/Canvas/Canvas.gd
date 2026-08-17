@@ -14,6 +14,8 @@ var move_preview_location := Vector2i.ZERO
 var layer_texture_array := Texture2DArray.new()
 var layer_metadata_image := Image.new()
 var layer_metadata_texture := ImageTexture.new()
+# 커스텀 변경. by kojeomstudio — 영역 태그 오버레이(입력 방해 없는 시각 표시 전용).
+var region_tags_overlay: RegionTagsOverlay
 
 @onready var currently_visible_frame := $CurrentlyVisibleFrame as SubViewport
 @onready var current_frame_drawer := $CurrentlyVisibleFrame/CurrentFrameDrawer as Node2D
@@ -44,6 +46,10 @@ func _ready() -> void:
 	onion_past.blue_red_color = Global.onion_skinning_past_color
 	onion_future.type = onion_future.FUTURE
 	onion_future.blue_red_color = Global.onion_skinning_future_color
+	# 커스텀 변경. by kojeomstudio — 코드로 오버레이 노드를 생성해 캔버스 최상단에 표시.
+	region_tags_overlay = RegionTagsOverlay.new()
+	region_tags_overlay.name = "RegionTagsOverlay"
+	add_child(region_tags_overlay)
 	await get_tree().process_frame
 	camera_zoom()
 

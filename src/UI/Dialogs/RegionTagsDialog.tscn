@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/UI/Dialogs/RegionTagsDialog.gd" id="1_regiontags"]
+
+[node name="RegionTagsDialog" type="AcceptDialog"]
+title = "Region Tags"
+size = Vector2i(760, 440)
+min_size = Vector2i(640, 380)
+script = ExtResource("1_regiontags")

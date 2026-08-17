@@ -579,7 +579,8 @@ func export_processed_images(
 
 	_scale_processed_images(export_profile.resize, export_profile.interpolation)
 	if export_profile.export_json:
-		var json := JSON.stringify(project.serialize())
+		# 커스텀 변경. by kojeomstudio — 탭 들여쓰기로 저장해 사용자가 JSON을 편하게 읽도록 함.
+		var json := JSON.stringify(project.serialize(), "\t")
 		var json_file_name := project.name + ".json"
 		if OS.has_feature("web"):
 			var json_buffer := json.to_utf8_buffer()

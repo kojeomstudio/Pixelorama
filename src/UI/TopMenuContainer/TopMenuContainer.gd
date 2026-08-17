@@ -60,6 +60,8 @@ var last_applied_effect: Window
 var window_opacity_dialog := Dialog.new("res://src/UI/Dialogs/WindowOpacityDialog.tscn")
 var about_dialog := Dialog.new("res://src/UI/Dialogs/AboutDialog.tscn")
 var backup_dialog := Dialog.new("res://src/UI/Dialogs/BackupRestoreDialog.tscn")
+# 커스텀 변경. by kojeomstudio — 영역 태그 관리 다이얼로그(지연 로딩).
+var region_tags_dialog := Dialog.new("res://src/UI/Dialogs/RegionTagsDialog.tscn")
 
 @onready var main := $"../.." as Control
 @onready var main_ui := main.find_child("DockableContainer") as DockableContainer
@@ -341,6 +343,7 @@ func _setup_view_menu() -> void:
 		"Show Reference Images": "show_reference_images",
 		"Display Layer Effects": &"display_layer_effects",
 		"Snap To": "",
+		"Show Region Tags": "",  # 커스텀 변경. by kojeomstudio — 영역 태그 오버레이 토글
 	}
 	for i in view_menu_items.size():
 		var item: String = view_menu_items.keys()[i]
@@ -358,6 +361,7 @@ func _setup_view_menu() -> void:
 	view_menu.set_item_checked(Global.ViewMenu.SHOW_GUIDES, true)
 	view_menu.set_item_checked(Global.ViewMenu.SHOW_REFERENCE_IMAGES, true)
 	view_menu.set_item_checked(Global.ViewMenu.DISPLAY_LAYER_EFFECTS, true)
+	view_menu.set_item_checked(Global.ViewMenu.SHOW_REGION_TAGS, true)  # 커스텀 변경. by kojeomstudio
 	view_menu.hide_on_checkable_item_selection = false
 	view_menu.id_pressed.connect(view_menu_id_pressed)
 
@@ -377,6 +381,10 @@ func _setup_view_menu() -> void:
 	)
 	var show_mouse_guides: bool = Global.config_cache.get_value(
 		"view_menu", "show_mouse_guides", Global.show_mouse_guides
+	)
+	# 커스텀 변경. by kojeomstudio — 영역 태그 표시 설정 로드.
+	var show_region_tags: bool = Global.config_cache.get_value(
+		"view_menu", "show_region_tags", Global.show_region_tags
 	)
 	var display_layer_effects: bool = Global.config_cache.get_value(
 		"view_menu", "display_layer_effects", Global.display_layer_effects
@@ -403,6 +411,9 @@ func _setup_view_menu() -> void:
 		_toggle_show_guides()
 	if show_mouse_guides != Global.show_mouse_guides:
 		_toggle_show_mouse_guides()
+	# 커스텀 변경. by kojeomstudio — 저장된 설정에 따라 영역 태그 오버레이 토글.
+	if show_region_tags != Global.show_region_tags:
+		_toggle_show_region_tags()
 	if show_pixel_indices != Global.show_pixel_indices:
 		_toggle_show_pixel_indices()
 	if display_layer_effects != Global.display_layer_effects:
@@ -522,6 +533,7 @@ func _setup_project_menu() -> void:
 		"Scale Image": "scale_image",
 		"Crop to Selection": "crop_to_selection",
 		"Crop to Content": "crop_to_content",
+		"Region Tags...": "",  # 커스텀 변경. by kojeomstudio — 영역 태그 관리 다이얼로그
 	}
 	for i in project_menu_items.size():
 		var item: String = project_menu_items.keys()[i]
@@ -848,6 +860,8 @@ func view_menu_id_pressed(id: int) -> void:
 			_toggle_show_pixel_indices()
 		Global.ViewMenu.DISPLAY_LAYER_EFFECTS:
 			Global.display_layer_effects = not Global.display_layer_effects
+		Global.ViewMenu.SHOW_REGION_TAGS:  # 커스텀 변경. by kojeomstudio
+			_toggle_show_region_tags()
 		_:
 			_handle_metadata(id, view_menu)
 
@@ -1134,6 +1148,12 @@ func _toggle_show_mouse_guides() -> void:
 			Global.canvas.mouse_guide_container.get_child(1).queue_redraw()
 
 
+# 커스텀 변경. by kojeomstudio — 영역 태그 오버레이 표시 토글(Global setter가 재그리기 처리).
+func _toggle_show_region_tags() -> void:
+	Global.show_region_tags = not Global.show_region_tags
+	view_menu.set_item_checked(Global.ViewMenu.SHOW_REGION_TAGS, Global.show_region_tags)
+
+
 func _toggle_zen_mode() -> void:
 	for i in ui_elements.size():
 		var index := panels_submenu.get_item_index(i)
@@ -1171,6 +1191,8 @@ func project_menu_id_pressed(id: int) -> void:
 			DrawingAlgos.crop_to_content()
 		Global.ProjectMenu.RESIZE_CANVAS:
 			resize_canvas_dialog.popup()
+		Global.ProjectMenu.REGION_TAGS:  # 커스텀 변경. by kojeomstudio
+			region_tags_dialog.popup()
 		_:
 			_handle_metadata(id, project_menu)
 

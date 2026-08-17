@@ -727,6 +727,8 @@ func _exit_tree() -> void:
 	Global.config_cache.set_value("view_menu", "show_rulers", Global.show_rulers)
 	Global.config_cache.set_value("view_menu", "show_guides", Global.show_guides)
 	Global.config_cache.set_value("view_menu", "show_mouse_guides", Global.show_mouse_guides)
+	# 커스텀 변경. by kojeomstudio — 영역 태그 표시 설정 저장.
+	Global.config_cache.set_value("view_menu", "show_region_tags", Global.show_region_tags)
 	Global.config_cache.set_value(
 		"view_menu", "display_layer_effects", Global.display_layer_effects
 	)
