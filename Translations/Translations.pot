@@ -4219,3 +4219,12 @@ msgstr ""
 #: src/Autoload/Tools.gd
 msgid "Drag to create a region tag on the canvas"
 msgstr ""
+
+# 커스텀 변경. by kojeomstudio — 태그 지우개 도구 문자열
+#: src/Autoload/Tools.gd src/Tools/UtilityTools/RegionTagEraser.tscn
+msgid "Region Tag Eraser"
+msgstr ""
+
+#: src/Autoload/Tools.gd src/Tools/UtilityTools/RegionTagEraser.tscn
+msgid "Click or drag over a tag to erase it"
+msgstr ""

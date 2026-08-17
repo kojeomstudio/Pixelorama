@@ -404,7 +404,16 @@ func _on_visible_toggled(button_pressed: bool) -> void:
 
 
 func _on_add_pressed() -> void:
-	_add_tag(Rect2i(Vector2i.ZERO, Vector2i.ONE), false)
+	# 커스텀 변경. by kojiomstudio — 1x1 더미 대신 선택 영역이 있으면 그것으로,
+	# 없으면 캔버스 중앙의 눈에 보이는 크기(8x8)로 초기화한다.
+	var project := Global.current_project
+	var rect := Rect2i((project.size - Vector2i(8, 8)) / 2, Vector2i(8, 8))
+	if project.has_selection:
+		var selection_rect := project.selection_map.get_selection_rect(project)
+		rect = selection_rect.intersection(Rect2i(Vector2i.ZERO, project.size))
+		if not rect.has_area():
+			rect = Rect2i((project.size - Vector2i(8, 8)) / 2, Vector2i(8, 8))
+	_add_tag(rect, false)
 
 
 ## 현재 선택 영역을 태그로 만든다. 선택이 없으면 알림만 표시한다.

@@ -20,6 +20,8 @@ func _ready() -> void:
 		await get_tree().process_frame
 	await _test_overlay()
 	await _test_tool()
+	await _test_tool_click_only_blocked()
+	await _test_eraser()
 	await _test_naming_and_sorting()
 	await _test_dialog_flow()
 	await _test_serialization()
@@ -97,6 +99,52 @@ func _test_naming_and_sorting() -> void:
 		serialized_names.append(entry["name"])
 	if serialized_names != expected_order:
 		_fail("sorting: 직렬화 정렬 오류 (%s)" % str(serialized_names))
+	project.region_tags = []
+
+
+## 클릭만으로는 1x1 태그가 만들어지지 않는지 검증한다.
+func _test_tool_click_only_blocked() -> void:
+	Tools.assign_tool("RegionTag", MOUSE_BUTTON_LEFT)
+	var tool := Tools.get_tool(MOUSE_BUTTON_LEFT).tool_node
+	var project := Global.current_project
+	project.region_tags = []
+	tool.draw_start(Vector2i(5, 5))
+	tool.draw_end(Vector2i(5, 5))
+	if project.region_tags.size() != 0:
+		_fail("click_only: 클릭만으로 태그가 생성됨 (size=%d)" % project.region_tags.size())
+
+
+## 태그 지우개: 클릭 지점 태그 삭제와 undo 복구를 검증한다.
+func _test_eraser() -> void:
+	if not Tools.tools.has("RegionTagEraser"):
+		_fail("eraser: Tools.tools 에 RegionTagEraser 미등록")
+		return
+	Tools.assign_tool("RegionTagEraser", MOUSE_BUTTON_LEFT)
+	var eraser := Tools.get_tool(MOUSE_BUTTON_LEFT).tool_node
+	var project := Global.current_project
+	project.region_tags = [
+		RegionTag.new("head_0_0", Color.RED, Rect2i(2, 2, 6, 6), -1, 1, 1),
+		RegionTag.new("body_0_0", Color.BLUE, Rect2i(10, 10, 6, 6), -1, 1, 1),
+	]
+	project.region_tags = project.region_tags
+	eraser.draw_start(Vector2i(3, 3))  # head 태그 내부 클릭
+	if project.region_tags.size() != 1 or project.region_tags[0].name != "body_0_0":
+		_fail(
+			(
+				"eraser: 클릭 태그 미삭제 (size=%d first=%s)"
+				% [
+					project.region_tags.size(),
+					project.region_tags[0].name if project.region_tags.size() > 0 else "-"
+				]
+			)
+		)
+	eraser.draw_end(Vector2i(3, 3))
+	if not project.undo_redo.has_undo():
+		_fail("eraser: 삭제가 undo 액션으로 커밋되지 않음")
+	else:
+		project.undo_redo.undo()
+		if project.region_tags.size() != 2:
+			_fail("eraser: undo 후 복원 실패 (size=%d)" % project.region_tags.size())
 	project.region_tags = []
 
 

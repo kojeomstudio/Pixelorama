@@ -113,6 +113,15 @@ var tools: Dictionary[String, Tool] = {
 		[],
 		"Drag to create a region tag on the canvas"
 	),
+	"RegionTagEraser":  # 커스텀 변경. by kojeomstudio — 태그 지우개 도구 등록
+	Tool.new(
+		"RegionTagEraser",
+		"Region Tag Eraser",
+		"region_tag_eraser",
+		"res://src/Tools/UtilityTools/RegionTagEraser.tscn",
+		[],
+		"Click or drag over a tag to erase it"
+	),
 	"Move":
 	Tool.new(
 		"Move",

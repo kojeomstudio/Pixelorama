@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://src/Tools/BaseTool.tscn" id="1"]
+[ext_resource type="Script" path="res://src/Tools/UtilityTools/RegionTagEraser.gd" id="2"]
+
+[node name="ToolOptions" instance=ExtResource("1")]
+script = ExtResource("2")
+
+[node name="HintLabel" type="Label" parent="." index="2"]
+layout_mode = 2
+theme_type_variation = &"HeaderXSmall"
+text = "Click or drag over a tag to erase it"
+autowrap_mode = 2
+horizontal_alignment = 1

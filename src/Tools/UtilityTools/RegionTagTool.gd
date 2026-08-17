@@ -48,8 +48,14 @@ func draw_move(pos: Vector2i) -> void:
 
 func draw_end(pos: Vector2i) -> void:
 	super.draw_end(pos)
+	# 커스텀 변경. by kojeomstudio — 명시적으로 드래그한 경우에만 태그를 만든다.
+	# 클릭만으로 1x1 태그가 생기면 메타데이터가 노이즈로 오염된다.
+	if pos == _start_pos:
+		_reset_tool()
+		Global.canvas.previews.queue_redraw()
+		return
 	_rect = _get_result_rect(_start_pos, pos)
-	if _rect.has_area():
+	if _rect.size.x > 1 or _rect.size.y > 1:
 		_commit_tag(_rect)
 	_reset_tool()
 	Global.canvas.previews.queue_redraw()

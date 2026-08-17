@@ -63,24 +63,29 @@ func _draw() -> void:
 		var border_color := tag.color
 		border_color.a = BORDER_ALPHA
 		draw_rect(rect, border_color, false, border_width)
-		_draw_label(rect.position + LABEL_OFFSET, tag.name, tag.color, canvas_zoom, canvas_rotation)
+		_draw_label(rect, tag.name, tag.color, canvas_zoom, canvas_rotation)
 
 
-## 라벨 텍스트는 화면 기준 크기로 고정하여 줌 레벨과 무관하게 읽을 수 있게 한다.
+## 라벨은 화면 고정 크기로 그리되 위치는 영역 크기에 맞춰 배치한다.
 func _draw_label(
-	position: Vector2, text: String, color: Color, canvas_zoom: Vector2, canvas_rotation: float
+	rect: Rect2, text: String, color: Color, canvas_zoom: Vector2, canvas_rotation: float
 ) -> void:
-	var string_pos := (position * canvas_zoom).rotated(-canvas_rotation)
-	draw_set_transform(Vector2.ZERO, canvas_rotation, Vector2.ONE / canvas_zoom)
-	# 가독성을 위해 어두운 오프셋 사본을 먼저 그린다.
-	draw_string(
-		font,
-		string_pos + Vector2.ONE,
-		text,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		-1,
-		LABEL_FONT_SIZE,
-		Color(0, 0, 0, 0.6)
+	# 커스텀 변경. by kojiomstudio — 라벨 위치/가독성 개선:
+	# 화면상 영역이 라벨보다 크면 영역 내부 상단에, 작으면 영역 위쪽에 배치한다.
+	# 반투명 어두운 배경 박스를 깔아 어떤 배경 위에서도 읽히게 한다.
+	var label_size := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE)
+	var rect_screen_size := rect.size * canvas_zoom
+	var inside_rect := (
+		rect_screen_size.x > label_size.x + 8 and rect_screen_size.y > LABEL_FONT_SIZE + 6
 	)
+	var label_pos := rect.position + LABEL_OFFSET  # 기본: 영역 위쪽 바깥
+	if inside_rect or rect.position.y * canvas_zoom.y < LABEL_FONT_SIZE + 4:
+		label_pos = rect.position + Vector2(2, 2)  # 영역 내부 상단 좌측
+	var string_pos := (label_pos * canvas_zoom).rotated(-canvas_rotation)
+	draw_set_transform(Vector2.ZERO, canvas_rotation, Vector2.ONE / canvas_zoom)
+	var background_rect := Rect2(
+		string_pos - Vector2(3, 2), label_size + Vector2(6, 4)
+	)
+	draw_rect(background_rect, Color(0, 0, 0, 0.55), true)
 	draw_string(font, string_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE, color)
 	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
