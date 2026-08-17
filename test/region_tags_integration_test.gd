@@ -19,6 +19,7 @@ func _ready() -> void:
 	for i in 15:
 		await get_tree().process_frame
 	await _test_overlay()
+	await _test_tool()
 	await _test_dialog_flow()
 	await _test_serialization()
 	await _test_pxo_roundtrip()
@@ -27,6 +28,39 @@ func _ready() -> void:
 	for failure in _failures:
 		print("  - ", failure)
 	get_tree().quit(0 if _failures.is_empty() else 1)
+
+
+## Region Tag 도구: 등록/할당 + 드래그 시뮬레이션으로 태그 생성과 undo 를 검증한다.
+func _test_tool() -> void:
+	if not Tools.tools.has("RegionTag"):
+		_fail("tool: Tools.tools 에 RegionTag 미등록")
+		return
+	Tools.assign_tool("RegionTag", MOUSE_BUTTON_LEFT)
+	var tool := Tools.get_tool(MOUSE_BUTTON_LEFT).tool_node
+	if tool == null:
+		_fail("tool: tool_node 미할당")
+		return
+	var project := Global.current_project
+	project.region_tags = []
+	tool.draw_start(Vector2i(3, 4))
+	tool.draw_move(Vector2i(10, 14))
+	tool.draw_end(Vector2i(10, 14))
+	if project.region_tags.size() != 1:
+		_fail("tool: 드래그 후 태그 미생성 (size=%d)" % project.region_tags.size())
+		return
+	var tag := project.region_tags[0]
+	# 기본 옵션: 이름 자동(region_1), 현재 프레임(1), 전체 레이어(-1)
+	var expected := Rect2i(3, 4, 8, 11)
+	if tag.rect != expected or tag.layer != -1 or tag.from_frame != 1:
+		_fail(
+			"tool: 태그 필드 오류 (rect=%s layer=%d from=%d)" % [str(tag.rect), tag.layer, tag.from_frame]
+		)
+	if not project.undo_redo.has_undo():
+		_fail("tool: 태그 생성이 undo 액션으로 커밋되지 않음")
+	else:
+		project.undo_redo.undo()
+		if project.region_tags.size() != 0:
+			_fail("tool: undo 후 태그 잔존 (size=%d)" % project.region_tags.size())
 
 
 func _fail(message: String) -> void:

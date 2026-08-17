@@ -104,6 +104,15 @@ var tools: Dictionary[String, Tool] = {
 		[],
 		"Resize the canvas"
 	),
+	"RegionTag":  # 커스텀 변경. by kojeomstudio — 영역 태그 도구 등록
+	Tool.new(
+		"RegionTag",
+		"Region Tag",
+		"region_tag",
+		"res://src/Tools/UtilityTools/RegionTagTool.tscn",
+		[],
+		"Drag to create a region tag on the canvas"
+	),
 	"Move":
 	Tool.new(
 		"Move",

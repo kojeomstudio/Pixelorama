@@ -1,0 +1,59 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://src/Tools/BaseTool.tscn" id="1"]
+[ext_resource type="Script" path="res://src/Tools/UtilityTools/RegionTagTool.gd" id="2"]
+
+[node name="ToolOptions" instance=ExtResource("1")]
+script = ExtResource("2")
+
+[node name="NameContainer" type="HBoxContainer" parent="." index="2"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="NameContainer" index="0"]
+layout_mode = 2
+text = "Name:"
+
+[node name="Name" type="LineEdit" parent="NameContainer" index="1"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "region_1"
+
+[node name="ColorOptions" type="HBoxContainer" parent="." index="3"]
+layout_mode = 2
+
+[node name="ColorLabel" type="Label" parent="ColorOptions" index="0"]
+layout_mode = 2
+text = "Color:"
+
+[node name="Color" type="ColorPickerButton" parent="ColorOptions" index="1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 24)
+layout_mode = 2
+color = Color(1, 0.301961, 0.301961, 1)
+edit_alpha = false
+
+[node name="FrameScope" type="OptionButton" parent="." index="4"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+clip_text = true
+selected = 0
+item_count = 2
+popup/item_0/text = "Current frame"
+popup/item_0/id = 0
+popup/item_1/text = "All frames"
+popup/item_1/id = 1
+
+[node name="LayerOnly" type="CheckBox" parent="." index="5"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "Current layer only"
+
+[node name="HintLabel" type="Label" parent="." index="6"]
+layout_mode = 2
+theme_type_variation = &"HeaderXSmall"
+text = "Existing tags can be edited in Image > Region Tags..."
+autowrap_mode = 2
+horizontal_alignment = 1

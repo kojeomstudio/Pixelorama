@@ -4196,3 +4196,21 @@ msgstr ""
 #: src/UI/Dialogs/RegionTagsDialog.gd
 msgid "hidden"
 msgstr ""
+
+# 커스텀 변경. by kojiomstudio — 영역 태그 도구 문자열
+#: src/Autoload/Tools.gd src/Tools/UtilityTools/RegionTagTool.tscn
+msgid "Region Tag"
+msgstr ""
+
+#: src/Tools/UtilityTools/RegionTagTool.tscn
+msgid "Current layer only"
+msgstr ""
+
+#: src/Tools/UtilityTools/RegionTagTool.tscn
+msgid "Existing tags can be edited in Image > Region Tags..."
+msgstr ""
+
+#. Shown as extra hint in the tooltip of the Region Tag tool.
+#: src/Autoload/Tools.gd
+msgid "Drag to create a region tag on the canvas"
+msgstr ""
