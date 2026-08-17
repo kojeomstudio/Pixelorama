@@ -20,6 +20,7 @@ func _ready() -> void:
 		await get_tree().process_frame
 	await _test_overlay()
 	await _test_tool()
+	await _test_list_delete()
 	await _test_tool_click_only_blocked()
 	await _test_eraser()
 	await _test_naming_and_sorting()
@@ -164,6 +165,28 @@ func _test_eraser() -> void:
 		project.undo_redo.undo()
 		if project.region_tags.size() != 2:
 			_fail("eraser: undo 후 복원 실패 (size=%d)" % project.region_tags.size())
+	project.region_tags = []
+
+
+## 도구 태그 목록의 삭제 로직(우클릭 메뉴가 호출하는 함수) 검증.
+func _test_list_delete() -> void:
+	Tools.assign_tool("RegionTag", MOUSE_BUTTON_LEFT)
+	var tool := Tools.get_tool(MOUSE_BUTTON_LEFT).tool_node
+	var project := Global.current_project
+	project.region_tags = [
+		RegionTag.new("head_layer0_frame0", Color.RED, Rect2i(2, 2, 6, 6), -1, 1, 1),
+		RegionTag.new("body_layer0_frame0", Color.BLUE, Rect2i(10, 10, 6, 6), -1, 1, 1),
+	]
+	project.region_tags = project.region_tags
+	tool._delete_tag_at(0)
+	if project.region_tags.size() != 1 or project.region_tags[0].name != "body_layer0_frame0":
+		_fail("list_delete: 삭제 결과 오류 (size=%d)" % project.region_tags.size())
+	if not project.undo_redo.has_undo():
+		_fail("list_delete: 삭제가 undo 액션으로 커밋되지 않음")
+	else:
+		project.undo_redo.undo()
+		if project.region_tags.size() != 2:
+			_fail("list_delete: undo 후 복원 실패")
 	project.region_tags = []
 
 

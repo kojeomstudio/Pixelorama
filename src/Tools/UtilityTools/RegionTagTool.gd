@@ -15,6 +15,8 @@ var _start_pos := Vector2i.ZERO
 var _rect := Rect2i()
 var _square := false  ## Mouse Click + Shift
 var _expand_from_center := false  ## Mouse Click + Ctrl
+# 커스텀 추가. by kojiomstudio — 태그 목록 우클릭 삭제 메뉴.
+var _context_menu: PopupMenu
 
 var _connected_project: Project
 
@@ -26,7 +28,55 @@ func _ready() -> void:
 	Global.project_switched.connect(_on_project_switched)
 	Global.cel_switched.connect(_refresh_tag_list)
 	$"TagList".item_selected.connect(_on_tag_list_selected)
+	# 커스텀 추가. by kojiomstudio — 태그 목록 우클릭 메뉴로 삭제를 제공한다.
+	$"TagList".item_clicked.connect(_on_tag_list_item_clicked)
+	_context_menu = PopupMenu.new()
+	_context_menu.add_item(tr("Delete tag"), 0)
+	_context_menu.id_pressed.connect(_on_context_menu_id_pressed)
+	add_child(_context_menu)
 	_on_project_switched()
+
+
+## 목록 항목 우클릭 시 삭제 메뉴를 띄운다.
+func _on_tag_list_item_clicked(index: int, position: Vector2, button: int) -> void:
+	if button != MOUSE_BUTTON_RIGHT:
+		return
+	if index >= Global.current_project.region_tags.size():
+		return
+	$"TagList".select(index)
+	_on_tag_list_selected(index)
+	_context_menu.reset_size()
+	_context_menu.position = _context_menu.get_viewport().get_mouse_position()
+	_context_menu.popup()
+
+
+## 컨텍스트 메뉴의 삭제 처리: 단일 undo 액션으로 커밋한다.
+func _on_context_menu_id_pressed(_id: int) -> void:
+	var selected := ($"TagList" as ItemList).get_selected_items()
+	if selected.is_empty():
+		return
+	_delete_tag_at(selected[0])
+
+
+## 커스텀 추가. by kojiomstudio — 목록에서 태그를 삭제하고 undo 로 복구 가능하게 한다.
+func _delete_tag_at(index: int) -> void:
+	var project := Global.current_project
+	if index >= project.region_tags.size():
+		return
+	var undo_tags := _duplicate_tags(project.region_tags)
+	var redo_tags := _duplicate_tags(project.region_tags)
+	redo_tags.remove_at(index)
+	project.undo_redo.create_action("Delete Region Tag")
+	project.undo_redo.add_do_property(project, "region_tags", redo_tags)
+	project.undo_redo.add_undo_property(project, "region_tags", undo_tags)
+	project.undo_redo.commit_action()
+
+
+func _duplicate_tags(tags: Array[RegionTag]) -> Array[RegionTag]:
+	var result: Array[RegionTag] = []
+	for tag in tags:
+		result.append(tag.duplicate())
+	return result
 
 
 func _on_project_switched() -> void:
@@ -143,8 +193,12 @@ func draw_preview() -> void:
 	canvas.draw_rect(_rect, fill_color, true)
 	var border_color := color
 	border_color.a = RegionTagsOverlay.BORDER_ALPHA
-	# 커스텀 변경. by kojiomstudio — 기존 셀렉션 도구(RectSelect)와 동일한 얇은 테두리.
-	canvas.draw_rect(_rect, border_color, false)
+	# 커스텀 변경. by kojiomstudio — 테두리를 화면 기준 1px 로 고정한다.
+	# 도구 노드의 get_viewport() 는 캔버스 SubViewport 가 아니라 메인 윈도우라서
+	# 줌 보정이 틀어졌었으므로 캔버스 카메라 줌을 직접 참조한다.
+	var camera_zoom: float = absf(Global.camera.zoom.x * canvas_scale.x)
+	var border_width := 1.0 / maxf(camera_zoom, 0.001)
+	canvas.draw_rect(_rect, border_color, false, border_width)
 	canvas.draw_set_transform(canvas.position, canvas.rotation, canvas.scale)
 
 
