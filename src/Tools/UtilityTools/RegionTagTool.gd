@@ -143,10 +143,8 @@ func draw_preview() -> void:
 	canvas.draw_rect(_rect, fill_color, true)
 	var border_color := color
 	border_color.a = RegionTagsOverlay.BORDER_ALPHA
-	# 커스텀 변경. by kojiomstudio — 테두리를 화면 기준 1px 로 얇게 유지(줌 보정).
-	var canvas_zoom := get_viewport().canvas_transform.get_scale()
-	var border_width := 1.0 / maxf(canvas_zoom.x, 0.001)
-	canvas.draw_rect(_rect, border_color, false, border_width)
+	# 커스텀 변경. by kojiomstudio — 기존 셀렉션 도구(RectSelect)와 동일한 얇은 테두리.
+	canvas.draw_rect(_rect, border_color, false)
 	canvas.draw_set_transform(canvas.position, canvas.rotation, canvas.scale)
 
 
