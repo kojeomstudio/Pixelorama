@@ -528,8 +528,10 @@ func deserialize(dict: Dictionary, zip_reader: ZIPReader = null, file: FileAcces
 			new_tag.user_data = tag.get("user_data", "")
 			animation_tags.append(new_tag)
 		animation_tags = animation_tags
-	# 커스텀 변경. by kojeomstudio — 저장된 영역 태그 복원 (구버전 .pxo에는 키가 없어 빈 목록 유지).
+	# 커스텀 변경. by kojeomstudio — 저장된 영역 태그 복원(구버전 .pxo에는 키가 없어 빈 목록 유지).
+	# 누적되지 않도록 로드 전 초기화.
 	if dict.has("region_tags"):
+		region_tags.clear()
 		for region_tag in dict.region_tags:
 			var new_region_tag := RegionTag.new()
 			new_region_tag.deserialize(region_tag)

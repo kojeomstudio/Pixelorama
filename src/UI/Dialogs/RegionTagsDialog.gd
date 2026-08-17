@@ -216,24 +216,44 @@ func _refresh_list(select_index := -1) -> void:
 	tag_list.clear()
 	var project := Global.current_project
 	for tag in project.region_tags:
-		var icon := Image.create(16, 16, false, Image.FORMAT_RGBA8)
-		var icon_color := tag.color
-		icon_color.a = 1.0
-		icon.fill(icon_color)
-		var frame_range := (
-			str(tag.from_frame)
-			if tag.from_frame == tag.to_frame
-			else "%d-%d" % [tag.from_frame, tag.to_frame]
-		)
-		var tag_name := tag.name if not tag.name.is_empty() else "-"
-		var label := "%s  (F%s)" % [tag_name, frame_range]
-		if not tag.visible:
-			label += "  (" + tr("hidden") + ")"
-		tag_list.add_item(label, ImageTexture.create_from_image(icon))
+		tag_list.add_item(_get_tag_label(tag), _get_tag_icon(tag))
 	if select_index >= 0 and select_index < tag_list.item_count:
 		tag_list.select(select_index)
 	_syncing = false
 	_populate_editors(_selected_tag())
+
+
+# 커스텀 변경. by kojeomstudio — 목록 항목 라벨/아이콘 조합을 헬퍼로 분리(부분 갱신 재사용).
+func _get_tag_label(tag: RegionTag) -> String:
+	var frame_range := (
+		str(tag.from_frame)
+		if tag.from_frame == tag.to_frame
+		else "%d-%d" % [tag.from_frame, tag.to_frame]
+	)
+	var tag_name := tag.name if not tag.name.is_empty() else "-"
+	var label := "%s  (F%s)" % [tag_name, frame_range]
+	if not tag.visible:
+		label += "  (" + tr("hidden") + ")"
+	return label
+
+
+func _get_tag_icon(tag: RegionTag) -> ImageTexture:
+	var icon := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+	var icon_color := tag.color
+	icon_color.a = 1.0
+	icon.fill(icon_color)
+	return ImageTexture.create_from_image(icon)
+
+
+# 커스텀 변경. by kojiomstudio — 편집마다 전체 목록을 재구성하면 텍스트 입력 중 커서가
+# 끝으로 튀고 스크롤이 리셋되므로, 선택 항목의 라벨/아이콘만 갱신한다.
+func _update_selected_item_label() -> void:
+	var selected := tag_list.get_selected_items()
+	if selected.is_empty() or selected[0] >= Global.current_project.region_tags.size():
+		return
+	var tag := Global.current_project.region_tags[selected[0]]
+	tag_list.set_item_text(selected[0], _get_tag_label(tag))
+	tag_list.set_item_icon(selected[0], _get_tag_icon(tag))
 
 
 func _selected_tag() -> RegionTag:
@@ -275,7 +295,12 @@ func _populate_editors(tag: RegionTag) -> void:
 		user_data_text_edit,
 		visible_check_box
 	]:
-		control.disabled = not has_tag
+		# 커스텀 변경. by kojeomstudio — 버튼 계열은 disabled, 입력 계열(LineEdit/TextEdit/SpinBox)은
+		# editable 프로퍼티를 쓴다. 잘못된 대입은 함수 중단(_syncing 갇힘)을 유발하므로 타입별 분기.
+		if control is BaseButton:
+			(control as BaseButton).disabled = not has_tag
+		else:
+			control.set("editable", has_tag)
 	if not has_tag:
 		_syncing = false
 		return
@@ -303,7 +328,7 @@ func _apply_edit(property: Callable, value: Variant) -> void:
 	property.call(tag, value)
 	# setter를 다시 통과시켜 region_tags_changed 신호 → 캔버스 오버레이 갱신.
 	Global.current_project.region_tags = Global.current_project.region_tags
-	_refresh_list(tag_list.get_selected_items()[0] if tag_list.get_selected_items() else -1)
+	_update_selected_item_label()
 
 
 func _on_name_changed(text: String) -> void:
@@ -349,7 +374,8 @@ func _on_height_changed(value: float) -> void:
 
 
 ## Rect2i는 값 타입이라 부분 수정을 헬퍼로 처리한다.
-func _set_rect_part(tag: RegionTag, part: String, value: int) -> void:
+## 커스텀 변경. by kojiomstudio — Callable.bind 는 인자 뒤에 붙으므로 part 를 마지막으로.
+func _set_rect_part(tag: RegionTag, value: int, part: String) -> void:
 	var rect := tag.rect
 	match part:
 		"position:x":
