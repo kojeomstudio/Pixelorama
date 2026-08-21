@@ -20,6 +20,7 @@ func _ready() -> void:
 		await get_tree().process_frame
 	await _test_overlay()
 	await _test_tool()
+	await _test_auto_reshape()
 	await _test_list_delete()
 	await _test_tool_click_only_blocked()
 	await _test_eraser()
@@ -46,6 +47,11 @@ func _test_tool() -> void:
 		return
 	var project := Global.current_project
 	project.region_tags = []
+	# 자동 re-shape 이 도입되어 그려진 픽셀이 있어야 태그가 생성된다. 드래그 영역을 채운다.
+	var image := project.frames[project.current_frame].cels[project.current_layer].get_image()
+	for y in range(4, 15):
+		for x in range(3, 11):
+			image.set_pixel(x, y, Color.RED)
 	tool.draw_start(Vector2i(3, 4))
 	tool.draw_move(Vector2i(10, 14))
 	tool.draw_end(Vector2i(10, 14))
@@ -187,6 +193,58 @@ func _test_list_delete() -> void:
 		project.undo_redo.undo()
 		if project.region_tags.size() != 2:
 			_fail("list_delete: undo 후 복원 실패")
+	project.region_tags = []
+
+
+## 자동 re-shape: 생성 시 콘텐츠에 맞게 rect 가 조정되는지, 빈 영역은 거부되는지 검증.
+func _test_auto_reshape() -> void:
+	Tools.assign_tool("RegionTag", MOUSE_BUTTON_LEFT)
+	var tool := Tools.get_tool(MOUSE_BUTTON_LEFT).tool_node
+	var project := Global.current_project
+	project.region_tags = []
+	# 현재 레이어(0)의 현재 프레임 셀에 (5,6)-(9,9) 블록만 그린다.
+	var image := project.frames[project.current_frame].cels[project.current_layer].get_image()
+	image.fill(Color(0, 0, 0, 0))
+	for y in range(6, 10):
+		for x in range(5, 10):
+			image.set_pixel(x, y, Color.RED)
+	# 드래그 영역 (0,0)-(15,15) → 자동 트림으로 (5,6)-(9,9) 가 되어야 한다.
+	tool.draw_start(Vector2i(0, 0))
+	tool.draw_move(Vector2i(15, 15))
+	tool.draw_end(Vector2i(15, 15))
+	if project.region_tags.size() != 1:
+		_fail("reshape: 자동 트림 태그 미생성 (size=%d)" % project.region_tags.size())
+		return
+	var tag := project.region_tags[0]
+	if tag.rect != Rect2i(5, 6, 5, 4):
+		_fail("reshape: 트림 rect 오류 (%s)" % str(tag.rect))
+	# 콘텐츠 없는 영역은 태그가 만들어지지 않는다.
+	project.region_tags = []
+	tool.draw_start(Vector2i(20, 20))
+	tool.draw_move(Vector2i(28, 28))
+	tool.draw_end(Vector2i(28, 28))
+	if project.region_tags.size() != 0:
+		_fail("reshape: 빈 영역 태그 생성됨 (size=%d)" % project.region_tags.size())
+	# Re-shape 버튼 로직: rect 내부 콘텐츠가 작아지면 rect 가 조여지는지 확인.
+	for y in range(6, 10):
+		for x in range(5, 10):
+			image.set_pixel(x, y, Color(0, 0, 0, 0))
+	for y in range(7, 9):
+		for x in range(7, 9):
+			image.set_pixel(x, y, Color.BLUE)
+	project.region_tags = [
+		RegionTag.new("head_layer0_frame0", Color.RED, Rect2i(5, 6, 5, 4), 0, 1, 1)
+	]
+	project.region_tags = project.region_tags
+	tool._on_reshape_pressed()
+	if project.region_tags.size() != 1:
+		_fail("reshape: 재계산 후 태그 유실")
+		return
+	if project.region_tags[0].rect != Rect2i(7, 7, 2, 2):
+		_fail("reshape: 재계산 rect 오류 (%s)" % str(project.region_tags[0].rect))
+	project.undo_redo.undo()
+	if project.region_tags[0].rect != Rect2i(5, 6, 5, 4):
+		_fail("reshape: undo 로 원 rect 복원 실패")
 	project.region_tags = []
 
 

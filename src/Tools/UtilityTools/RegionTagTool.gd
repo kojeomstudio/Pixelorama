@@ -44,6 +44,8 @@ func _ready() -> void:
 	_confirm_dialog.ok_button_text = tr("Delete")
 	_confirm_dialog.add_cancel_button(tr("Cancel"))
 	_confirm_dialog.confirmed.connect(_on_context_menu_id_pressed.bind(0))
+	# 커스텀 추가. by kojiomstudio — Re-shape: 모든 태그 영역을 콘텐츠에 맞게 다시 계산.
+	$"Reshape".pressed.connect(_on_reshape_pressed)
 	add_child(_confirm_dialog)
 	_context_menu = PopupMenu.new()
 	_context_menu.add_item(tr("Delete selected tags"), 0)
@@ -212,6 +214,28 @@ func _on_tag_list_selected(row: int) -> void:
 	overlay.selected_tag = Global.current_project.region_tags[tag_index]
 
 
+## 커스텀 추가. by kojiomstudio — 모든 태그의 영역을 그려진 픽셀에 맞게 다시 계산한다.
+## 단일 undo 액션으로 커밋되어 한 번에 되돌릴 수 있다.
+func _on_reshape_pressed() -> void:
+	var project := Global.current_project
+	if project.region_tags.is_empty():
+		return
+	var undo_tags := _duplicate_tags(project.region_tags)
+	var redo_tags := _duplicate_tags(project.region_tags)
+	var changed := false
+	for tag in redo_tags:
+		var trimmed := RegionTag.trim_to_content(tag, project)
+		if trimmed.has_area() and trimmed != tag.rect:
+			tag.rect = trimmed
+			changed = true
+	if not changed:
+		return
+	project.undo_redo.create_action("Re-shape Region Tags")
+	project.undo_redo.add_do_property(project, "region_tags", redo_tags)
+	project.undo_redo.add_undo_property(project, "region_tags", undo_tags)
+	project.undo_redo.commit_action()
+
+
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("shape_perfect"):
 		_square = true
@@ -246,7 +270,7 @@ func draw_end(pos: Vector2i) -> void:
 		return
 	_rect = _get_result_rect(_start_pos, pos)
 	if _rect.size.x > 1 or _rect.size.y > 1:
-		_commit_tag(_rect)
+		_commit_tag(_rect)  # 내부에서 콘텐츠 트림 적용
 	_reset_tool()
 	Global.canvas.previews.queue_redraw()
 
@@ -313,6 +337,14 @@ func _commit_tag(rect: Rect2i) -> void:
 	var color: Color = $"%Color".color
 	if $"%AutoColor".button_pressed:
 		color = RegionTag.pick_color(tag_base, project.region_tags)
+	# 커스텀 추가. by kojiomstudio — 자동 re-shape: 빈 픽셀을 제외한 그려진 픽셀에 맞게
+	# 영역을 다시 잡는다. 영역 안에 그려진 픽셀이 없으면 태그를 만들지 않고 알린다.
+	var probe := RegionTag.new(tag_name, color, rect, layer, from_frame, to_frame)
+	rect = RegionTag.trim_to_content(probe, project)
+	if not rect.has_area():
+		Global.notification_label(tr("The selected area has no visible pixels."))
+		return
+
 	var new_tags: Array[RegionTag] = []
 	for tag in project.region_tags:
 		new_tags.append(tag.duplicate())

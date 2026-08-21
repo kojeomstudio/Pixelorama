@@ -4243,3 +4243,17 @@ msgstr ""
 #: src/Tools/UtilityTools/RegionTagTool.gd
 msgid "Delete the selected region tags?"
 msgstr ""
+
+# 커스텀 변경. by kojeomstudio — re-shape 기능 문자열
+#: src/Tools/UtilityTools/RegionTagTool.tscn
+msgid "Re-shape tags"
+msgstr ""
+
+#. Tooltip of the Re-shape tags button.
+#: src/Tools/UtilityTools/RegionTagTool.tscn
+msgid "Recalculates every tag region to fit the drawn pixels"
+msgstr ""
+
+#: src/Tools/UtilityTools/RegionTagTool.gd
+msgid "The selected area has no visible pixels."
+msgstr ""

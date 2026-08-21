@@ -65,13 +65,20 @@ text = "Existing tags can be edited in Image > Region Tags..."
 autowrap_mode = 2
 horizontal_alignment = 1
 
-[node name="TagsLabel" type="Label" parent="." index="9"]
+[node name="Reshape" type="Button" parent="." index="9"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "Re-shape tags"
+tooltip_text = "Recalculates every tag region to fit the drawn pixels"
+
+[node name="TagsLabel" type="Label" parent="." index="10"]
 layout_mode = 2
 theme_type_variation = &"HeaderSmall"
 text = "Tags:"
 horizontal_alignment = 1
 
-[node name="TagList" type="ItemList" parent="." index="10"]
+[node name="TagList" type="ItemList" parent="." index="11"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2

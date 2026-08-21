@@ -131,5 +131,44 @@ func has_frame(index: int) -> bool:
 
 
 ## Returns true if the tag should be drawn for the given 0-based frame/layer indices.
+
+## 커스텀 추가. by kojeomstudio — rect 안의 불투명(그려진) 픽셀만 담도록 rect 를 다시 잡는다.
+## 태그 프레임 범위의 귀속 레이어 셀들을 모두 확인해 union bounding box 를 계산하며,
+## rect 안에 그려진 픽셀이 없으면 Rect2i() 를 반환한다.
+static func trim_to_content(tag: RegionTag, project: Project) -> Rect2i:
+	var layer_index := tag.layer if tag.layer >= 0 else project.current_layer
+	if layer_index >= project.layers.size():
+		return tag.rect
+	var frame_from := maxi(0, tag.from_frame - 1)
+	var frame_to := mini(project.frames.size() - 1, tag.to_frame - 1)
+	var result := Rect2i()
+	for f in range(frame_from, frame_to + 1):
+		var cel := project.frames[f].cels[layer_index]
+		if cel is PixelCel:
+			var image := cel.get_image()
+			var used := _content_bounds_in(image, tag.rect)
+			if used.has_area():
+				result = result.merge(used) if result.has_area() else used
+	return result
+
+
+## rect 내부에서 alpha 가 0 보다 큰 픽셀의 bounding box. get_used_rect() 로 빠르게
+## 비었음을 걸러낸 뒤 실제 스캔은 rect 로 한정한다.
+static func _content_bounds_in(image: Image, rect: Rect2i) -> Rect2i:
+	if image.is_invisible():
+		return Rect2i()
+	var bounds := Rect2i()
+	var found := false
+	for y in range(rect.position.y, rect.end.y):
+		for x in range(rect.position.x, rect.end.x):
+			if image.get_pixel(x, y).a > 0.0:
+				if not found:
+					bounds.position = Vector2i(x, y)
+					bounds.end = Vector2i(x + 1, y + 1)
+					found = true
+				else:
+					bounds.position = bounds.position.min(Vector2i(x, y))
+					bounds.end = bounds.end.max(Vector2i(x + 1, y + 1))
+	return bounds
 func applies_to(frame_index: int, layer_index: int) -> bool:
 	return has_frame(frame_index) and (layer == -1 or layer == layer_index)
